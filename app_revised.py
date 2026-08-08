@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 import pandas as pd
 from calculation import calculate_mt
 from co_revised_split import split_co_marks
@@ -39,13 +40,36 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 subject_code = st.text_input("Subject Code")
-with open("templates/sample_file_template.xlsx", "rb") as file:
+
+# template_folder = "input_templates"
+
+# template_files = sorted([
+#     f for f in os.listdir(template_folder)
+#     if f.endswith(".xlsx")
+# ])
+
+# selected_template = st.selectbox(
+#     "📄 Select Input Template file",
+#     template_files
+# )
+
+input_template = "Input_Template.xlsx"
+
+with open(f"input_templates/{input_template}", "rb") as file:
+
     st.download_button(
-        label="📥 Download Sample Marks Template",
+        label="📥 Download Student Marks Template",
         data=file,
-        file_name="Student_Marks_Template.xlsx",
+        file_name=input_template,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+# with open(f"input_templates/{selected_template}", "rb") as file:
+#     st.download_button(
+#         label="📥 Download selected Template File",
+#         data=file,
+#         file_name=selected_template,
+#         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+#     )
 
     st.info("""
 📌 Instructions
@@ -91,10 +115,10 @@ if uploaded_file:
     
     student_count = len(calc_df)
 
-    if student_count > 212:
+    if student_count > len(calc_df):
         st.warning(f"More students found than expected: {student_count}")
 
-    elif student_count < 212:
+    elif student_count < len(calc_df):
         st.warning(f"Fewer students found than expected: {student_count}")
 
     else:
@@ -117,6 +141,21 @@ if uploaded_file:
         st.stop()
 
     st.success("All validations passed successfully!")
+    template_map = {
+    22: "Template_22.xlsx",    
+    60: "Template_60.xlsx",
+    176: "Template_176.xlsx",
+    179: "Template_179.xlsx",
+    212: "Template_212.xlsx",
+    250: "Template_250.xlsx"
+        }
+    selected_template = template_map.get(student_count)
+
+    if selected_template is None:
+        st.error(
+            f"No template available for {student_count} students."
+        )
+        st.stop()
 
     st.subheader("Calculated Marks with CO Split")
     st.dataframe(
@@ -133,7 +172,8 @@ if uploaded_file:
         name_col,
         endterm_col,
         sessional_col,
-    )
+        selected_template,
+            )
 
         st.success("Workbook Generated Successfully!")
 

@@ -9,13 +9,14 @@ def generate_workbook(
     name_col,
     endterm_col,
     sessional_col,
+    selected_template
 ):
 
     # -----------------------------
     # Load Template
     # -----------------------------
 
-    wb = load_workbook("templates/25-26_2Ytemplate.xlsx")
+    wb = load_workbook(f"system_templates/{selected_template}")
 
     # -----------------------------
     # Sessional + End Term Sheet
