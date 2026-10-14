@@ -6,6 +6,45 @@ from co_revised_split import split_co_marks
 #from co_split import split_co_marks
 from excel_writer import generate_workbook
 from validation import validate_data
+from database import initialize_database, record_activity
+from auth import require_login, logout
+from admin_dashboard import render_admin_dashboard
+# Initialize the database
+initialize_database()
+
+# Require login before showing the attainment application
+require_login()
+
+# Only the administrator can access the private dashboard
+if st.session_state.get("role") == "admin":
+    render_admin_dashboard()
+    st.stop()
+
+# Faculty continue into the existing attainment application
+
+st.sidebar.success(
+    f"Logged in: {st.session_state['full_name']}"
+)
+
+st.sidebar.caption(
+    f"Department: {st.session_state.get('department', '')}"
+)
+
+# Logout button in the sidebar
+if st.sidebar.button("Logout"):
+    from database import record_activity
+
+    record_activity(
+        st.session_state["user_id"],
+        st.session_state["username"],
+        "LOGOUT",
+        status="SUCCESS"
+    )
+
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+
+    st.rerun()
 st.markdown("""
 <h1 style='
 text-align:center;
@@ -147,7 +186,7 @@ if uploaded_file:
     176: "Template_176.xlsx",
     179: "Template_179.xlsx",
     212: "Template_212.xlsx",
-    250: "Template_250.xlsx"
+    249: "Template_249.xlsx"
         }
     selected_template = template_map.get(student_count)
 
@@ -176,6 +215,15 @@ if uploaded_file:
             )
 
         st.success("Workbook Generated Successfully!")
+        record_activity(
+    user_id=st.session_state["user_id"],
+    username=st.session_state["username"],
+    action="GENERATE",
+    status="SUCCESS",
+    subject_code=subject_code,
+    student_count=student_count,
+    details="Attainment workbook generated successfully"
+)
 
         with open(output_file, "rb") as file:
 
